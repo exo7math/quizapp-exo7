@@ -1,16 +1,28 @@
 <script>
-  import { afterUpdate, onMount } from 'svelte';
+  import { afterUpdate, beforeUpdate, onMount } from 'svelte';
 
   export let question;
   export let propositions;
   export let onSelectedValue;
+  export let nbQuestions;
+  export let cpt = 0;
 
-  function handleRadioButtonClick(event) {
-    const selectedIndex = event.target.value;
+  function getSelectedIndex() {
+    const selectedIndex = [];
+    document.querySelectorAll('input[type=checkbox]').forEach((el) => {
+      if (el.checked) {
+        selectedIndex.push(el.value);
+      }
+    });
+    return selectedIndex;
+  }
+
+  function handleCheckBox() {
+    const selectedIndex = getSelectedIndex();
     onSelectedValue(selectedIndex);
   }
 
-  function compileFormuleMathematique() {
+  export function compileFormuleMathematique() {
     var exerciceContainer = document.getElementById('questionTexte');
     exerciceContainer.innerHTML = question.texte;
 
@@ -18,18 +30,22 @@
       console.error(err)
     );
   }
-  onMount(() => {
-    compileFormuleMathematique();
-  });
 
   afterUpdate(() => {
     compileFormuleMathematique();
+    // décocher les checkbox
+    document.querySelectorAll('input[type=checkbox]').forEach((el) => {
+      el.checked = false;
+    });
+    // pour chaque question qui s'affiche leur donné un index et les incrémente
+    cpt++;
   });
 </script>
 
 <main>
   <div class="question">
-    <h1>Question {question.index}</h1>
+    <h1>Question {cpt}/{nbQuestions}</h1>
+    <h3>id : {question.index}</h3>
     <div class="enonce">
       <div id="questionTexte" />
       <br />
@@ -37,11 +53,11 @@
         {#each propositions as proposition, index}
           <div class="proposition">
             <input
-              type="radio"
+              type="checkbox"
               id="proposition"
               name="proposition"
               value={index}
-              on:click={handleRadioButtonClick}
+              on:click={handleCheckBox}
             />
             <label for={index}>{proposition}</label>
           </div>
@@ -53,4 +69,7 @@
 </main>
 
 <style>
+  label {
+    font-size: 1.5em;
+  }
 </style>
